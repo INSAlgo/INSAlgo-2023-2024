@@ -1,4 +1,4 @@
-# Séance 2 - Complexité Algorithmique
+# Séance 1 - Complexité Algorithmique
 [Slides](Cours1-ComputationalComplexity.pdf)</br>
 Définition et examples de la complexité algorithmique temporelle.
 ## Exercices
