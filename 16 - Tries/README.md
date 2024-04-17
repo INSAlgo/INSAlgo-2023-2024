@@ -1,6 +1,6 @@
 # Tries
 
-[Sildes](Cours15-Tries.pdf)
+[Sildes](Cours16-Tries.pdf)
 
 ## Exercices
 
