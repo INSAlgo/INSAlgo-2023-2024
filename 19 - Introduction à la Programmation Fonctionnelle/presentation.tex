@@ -2,8 +2,8 @@
 
 \usetheme{Frankfurt}
 
-\title[Smart Share]{Introduction à la programmation fonctionnelle}
-\author[Insalgo]{Insalgo}
+\title{Introduction à la programmation fonctionnelle}
+\author{Insalgo}
 \date{2024}
 
 \usepackage[T1]{fontenc}
@@ -31,6 +31,17 @@ showstringspaces=false
 
 \newcommand*{\thead}[1]{\multicolumn{1}{|c|}{\bfseries #1}}
 \newcommand*{\local}[1]{\lstinline|\_#1|}
+
+\AtBeginSection[]{
+  \begin{frame}
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+    \usebeamerfont{title}\insertsectionhead\par%
+  \end{beamercolorbox}
+  \vfill
+  \end{frame}
+}
 
 \begin{document}
 
@@ -95,7 +106,7 @@ lambda x:f(x)
 
 \section{Définition fonctionnel}
 
-\begin{frame}{Le paradigme fonctionnels}
+\begin{frame}{Le paradigme fonctionnel}
     Le paradigme de la programmation fonctionnelle provient du $\lambda$-calcul. On retrouve donc les concepts suivants :
     \begin{itemize}
         \item Fonctions pures
@@ -112,16 +123,45 @@ lambda x:f(x)
 \end{frame}
 
 \begin{frame}{Fonctions pures}
+    Une fonction pure est l'analogue informatique des fonction mathématiques.
     Une fonction pure est une fonctions qui valide plusieurs critères :
     \begin{itemize}
-        \item Pas d'effets de bord
-        \item Déterministes
-        \item Valuées
+        \item Pas d'effets de bord : pas de mutation de variables globales ou d'entrées mutables
+        \item Déterministes : les mêmes paramètres donne le même résultat
     \end{itemize}
+
+    \pause
+
+    \begin{block}{Avantages}
+        \begin{itemize}
+            \item Reproductible et testable !
+
+            \item Se parallélise facilement
+    
+            \item Facilité de raisonnement sur le code
+        \end{itemize}
+
+    \end{block}
     
 \end{frame}
 
 \section{Concepts}
+
+\subsection{Généralités}
+
+\begin{frame}[fragile]{Vous avez dit boucles ?}
+    Non !
+
+    Une boucle implique une variable mutable. Or, les variables doivent être immutables.
+    
+    Pas de boucles \verb|while| ou \verb|for|.
+    \pause
+    \begin{block}{Solution}
+        Les boucles \verb|for| peuvent souvent être remplacées par des \textbf{fonctions d'ordre supérieur}.
+        De manière générale, les boucles sont remplacées par de la \textbf{récursion}.
+        Les langages fonctionnels ont des optimisation pour rendre la récursion plus performante (tail recursion).
+    \end{block}
+\end{frame}
 
 \begin{frame}[fragile]{Fonctions "first-class citizen"}
     On dit que les fonctions sont des citoyens de première classe dans un langage quand celui-ci permet de traiter les fonctions comme des valeurs : les assigner à des variables, les passer en paramètres à d'autres fonctions.
@@ -159,6 +199,9 @@ res = reduce(lambda x, y: x+y, [1,2,3,4]) # 10
 \begin{frame}[fragile]{Composition de fonctions}
     La programmation fonctionnelle se repose beaucoup sur le faire de faire le bon enchaînement de fonctions pour parvenir jusqu'au résultat attendu. Lorsqu'on enchaîne deux fonctions, on dit qu'on les compose : $\forall x, g(f(x)) = (g\circ f)(x)$
     Grâce aux fonctions d'ordre supérieur, on peut appliquer le même raisonnement en programmation.
+
+    \only<1>{\textbf{Une idée d'implémentation ?}}
+    \pause
     \begin{lstlisting}[language=Python]
 def compose(g, f):
     return lambda x : g(f(x))
@@ -169,6 +212,8 @@ add_then_mult = compose(mult, add)
 res = add_then_mult(2) # = (2+1)*2 = 6
     \end{lstlisting}
 \end{frame}
+
+\subsection{Applications partielles et currying}
 
 \begin{frame}[fragile]{Applications partielles et currying}
 
@@ -215,14 +260,16 @@ res = g(5) # 2 + 5 = 7
     \begin{block}{Définition}
         Revenons à notre $\lambda$-calcul. Dans la grammaire du langage, seules les fonctions à une variable d'entrée sont autorisées, comment alors représenter notre fonction une fonction qui prend deux arguments ?
 
+        \pause
+
         Comme cela : $\lambda x.\lambda y. M[x, y]$ (notation raccourcie : $\lambda xy.M[x, y]$)
 
         Ce mécanisme se nomme currying (du nom de Haskell Curry qui l'a inventé)
 
     \end{block}
-
     \begin{exampleblock}{Explication}
-      
+        \only<2>{Une idée ? Tentons de réduire $(\lambda x.\lambda y.M[x,y])\;N\;P$}
+        \pause
         $(\lambda x.\lambda y.M[x,y])\;N\;P$
         
         $\rightarrow (\lambda y.M[x:=N,y])\;P$
@@ -239,6 +286,8 @@ res = g(5) # 2 + 5 = 7
     On constate à l'étape intermédiaire que le terme $\lambda y.M[x:=N,y]$ est l'application partielle avec N comme premier argument de notre fonction. Le currying nous offre gratuitement l'application partielle comme étape intermédiaire.
 
     Ainsi, $(\lambda x.\lambda y.M[x,y])\;N$ la fonction prend deux paramètres mais si on ne lui en fournit qu'un seul paramètre $N$, le terme vaut l'application partielle de la fonction.
+
+    \textbf{Une idée d'implémentation en Python ?}
     
 \end{frame}
 
@@ -266,6 +315,8 @@ add = lambda a: lambda b: a+b
     \end{lstlisting}
 
 \end{frame}
+
+\subsection{Algebraic Data Types}
 
 \begin{frame}[fragile]{Algebraic Data Types}
     \framesubtitle{Types multiplicatifs}
@@ -304,7 +355,7 @@ type A = B | C
 
     \begin{itemize}
     \item En Rust :
-    \begin{lstlisting}[language=Rust]
+    \begin{lstlisting}
 enum Exemple {
     Variante1(i64),
     Variante2(f64)
@@ -319,11 +370,13 @@ data Pair = Variante1 Int
     \end{itemize}
 \end{frame}
 
+\subsection{Pattern matching}
+
 \begin{frame}[fragile]{Pattern matching}
     \framesubtitle{Variantes}
     Lorsque l'on manipule un type additif, on doit pouvoir faire une actions différente selon la variante, et en extraire les données internes. Ce là qu'intervient le pattern matching.
     En Rust :
-    \begin{lstlisting}[language=Rust]
+    \begin{lstlisting}
 let exemple = Exemple::Variante2(5.3);
 let res = match exemple {
     Exemple::Variante1(inner) => inner + 1,
@@ -372,12 +425,14 @@ match command.split():
     Voir \href{https://peps.python.org/pep-0636/}{PEP 636} pour un tour complet des fonctionnalités.
 \end{frame}
 
-\begin{frame}{Gestion d'erreurs et valeurs nulles}
+\subsection{Gestion d'erreurs et valeurs nulles}
+
+\begin{frame}[fragile]{Gestion d'erreurs et valeurs nulles}
     \framesubtitle{Le problème}
     Nous avons vu qu'en programmation fonctionnelle, les fonctions doivent avoir une valeur de retour pour toutes les combinaisons possibles de valeurs d'entrée. Mais que faire quand les valeurs d'entrée sont invalides ?
     Par exemple, la division n'est pas valide pour toutes les combinaisons de deux nombres, si le dénominateur vaut 0, alors la division n'est pas possible.
 
-    Comment alors créer une fonction \textbf|div(x: float, y: float)| qui reste pure ?
+    Comment alors créer une fonction \verb|div(x: float, y: float)| qui reste pure ?
 \end{frame}
 
 \begin{frame}[fragile]{Gestion d'erreurs et valeurs nulles}
@@ -395,10 +450,10 @@ type Maybe[T] = Just[T] | Nothing
 
     \verb|Maybe| / \verb|Just| / \verb|Nothing| sont les noms en Haskell. Les noms équivalents en rust sont \verb|Option| / \verb|Some| / \verb|None|
 
-    Une idée d'implémentation pour div(x: float, y: float) ?
+    \textbf{Une idée d'implémentation pour div(x: float, y: float) ?}
 \end{frame}
 
-\begin{frame}[fragile]{Gestiona d'erreurs et valeurs nulles}
+\begin{frame}[fragile]{Gestion d'erreurs et valeurs nulles}
     \framesubtitle{Exemple d'implémentation}
     On peut implémenter la fonction de cette manière
     \begin{lstlisting}[language=Python]
@@ -413,13 +468,13 @@ def div(a: float, b: float) -> Maybe[float]:
     \begin{lstlisting}
 match div(3, 5):
     case Just(res): print(f"Le resultat est {res}")
-    case Nothing(): print("Impossible !!")
+    case Nothing(): print("Division interdite !!")
     \end{lstlisting}
 
 
 \end{frame}
 
-\begin{frame}[fragile]{Frame Title}
+\begin{frame}[fragile]{Gestion d'erreurs et valeurs nulles}
     Attention à ne pas confondre \verb|Nothing| et \verb|None|, \verb|Nothing()| est une valeur valide seulement pour une variable de type \verb|Maybe|, alors que \verb|None| représente l'absence de valeur pour tous les types.
 
     En Rust et Haskell, le mot clé \verb|none|/\verb|null|/\verb|nil| est totalement absent. Pour représenter l'absence de valeur, il est nécéssaire de donner le type \verb|Option|/\verb|Maybe| et de donner sa variante \verb|Nothing| (appelée \verb|None| en Rust)
@@ -430,17 +485,22 @@ match div(3, 5):
     Ainsi, on modélise les erreurs dans le système de types, les erreurs sont traitées comme de simples valeurs. Il n'y a pas de mécanismes spécialisés pour la gestion d'erreurs (comme les exceptions)
     Cela permet de savoir si une fonction peut échouer simplement en regardant sa signature, et de s'assurer de gérer l'erreur.
 
-    Lorsqu'on veut chainer des opérations qui peuvent échouer, la syntaxe peut rapidement devenir chargée. Les langages type Rust ou Haskell qui utilisent par défaut cette gestion d'erreurs apportent des mécanismes qui permettent de simplifier cela (opérateur \verb|?| en Rust, opérateurs \verb|>>=| ou encore \verb|<$>| en Haskell).
+    Lorsqu'on veut chainer des opérations qui peuvent échouer, la syntaxe peut rapidement devenir chargée. Les langages type Rust ou Haskell qui utilisent par défaut cette gestion d'erreurs apportent des mécanismes qui permettent de simplifier cela (opérateur \verb|?| en Rust, opérateurs \verb|>>=| et\verb|>>| en Haskell).
 
-    En Haskell, ces opérateurs sont plus génériques et s'appliquent en réalité à des \textbf{Monades}, mais pas besoin d'en savoir plus pour les utiliser.
+    En Haskell, ces opérateurs sont plus génériques et s'appliquent en réalité à tout un ensemble de types qui sont des \textbf{Monades}, mais pas besoin d'en savoir plus pour les utiliser.
 \end{frame}
 
 \section{Conclusion}
 
 \begin{frame}{Conclusion}
+
+Les programmation fonctionnelle peut être déroutante au début. En particulier les langages fonctionnels ont une syntaxe particulière et de nouveaux concepts à comprendre.
+
+On peut tout de même reprendre certains concepts dans des langages impératifs plus classiques.
+
+Le programmation fonctionnelle peut permettre un style plus impératif permettant de mieux décrire les intentions, us système de types plus puissant qu'habituellement et une nouvelle visions sur les problèmes posés.
     
 \end{frame}
 
 \end{document}
  
-
