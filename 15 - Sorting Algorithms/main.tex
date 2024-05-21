@@ -1,0 +1,535 @@
+\documentclass[compress,12pt,bookmark]{beamer}
+
+\usepackage{booktabs}
+%\usepackage{verbatim}
+
+% packages for code
+\usepackage{minted}
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta}
+\usepackage{xcolor}
+
+% Define custom colors
+\definecolor{CustomCyan}{RGB}{0, 183, 235}
+\definecolor{CustomGreen}{RGB}{0, 178, 89}
+\definecolor{CustomYellow}{RGB}{220, 190, 0}
+\definecolor{CustomOrange}{RGB}{255, 135, 0}
+\definecolor{CustomRed}{RGB}{255, 30, 0}
+\definecolor{CustomPurple}{RGB}{128, 0, 128}
+\definecolor{CustomBlack}{RGB}{20, 20, 20}
+
+\usetheme{Arguelles}
+
+\title{Sorts}
+\subtitle{Understanding Array Sorting Algorithms, Efficiency, Comparison and Implementation}
+\event{INSAlgo}
+\date{\today}
+\author{Onyr (Florian RASCOUSSIER)}
+\institute{INSA Lyon \& IMT Atlantique}
+\email{florian.rascoussier@insa-lyon.fr}
+%\homepage{}
+\github{0nyr}
+
+\begin{document}
+
+\frame[plain]{\titlepage}
+
+\section{Introduction}
+
+\begin{frame}[plain,standout]
+    \centering
+    \Huge
+    Introduction
+
+    \normalsize
+    Discussing complexity, and efficiency of algorithms.
+    \vfill
+\end{frame}
+
+\begin{frame}
+    \frametitle{Runtime and Memory Complexity: Basics}
+
+    \begin{itemize}
+          \item \textbf{Runtime Complexity}
+                \begin{itemize}
+                      \item Time an algorithm takes relative to input length.
+                \end{itemize}
+          \item \textbf{Memory Complexity}
+                \begin{itemize}
+                      \item Memory needed by an algorithm relative to input size.
+                \end{itemize}
+          \item Both are crucial for:
+                \begin{itemize}
+                      \item Comparing algorithm efficiency.
+                      \item Choosing the right algorithm for the job.
+                \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Measuring Program Execution Time: Challenges}
+    \framesubtitle{Types of Time Measurements}
+
+    \begin{itemize}
+        \item \textbf{Time Measurement Issues}
+              \begin{itemize}
+                  \item Real Time: Wall-clock time for program execution.
+                  \item User Time: CPU time for executing user program code.
+                        \begin{itemize}
+                            \item Excludes system operations.
+                            \item Reflects direct program execution time.
+                        \end{itemize}
+                  \item System Time\footnote{See \url{https://stackoverflow.com/questions/556405/what-do-real-user-and-sys-mean-in-the-output-of-time1}}: CPU time for system operations for the program.
+                        \begin{itemize}
+                            \item File operations, I/O tasks.
+                            \item Essential for resource-intensive operations.
+                        \end{itemize}
+              \end{itemize}
+        \item Variability in measurements due to:
+              \begin{itemize}
+                  \item System load, resources, hardware.
+                  \item Inconsistencies across environments.
+              \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Measuring Program Execution Time: Theoretical Approach}
+    \framesubtitle{Abstracting Time Measurements}
+
+    \begin{itemize}
+        \item \textbf{Theoretical Approach}
+              \begin{itemize}
+                  \item Approximate with \textbf{input size} (n) and \textbf{operation count}.
+                  \item $n \in \mathbb{N}^*$: Number of loops or iterations -- main driver of complexity.
+                  \item $k \in \mathbb{N}^*$: Parameters affecting complexity, aside from input size.
+                        \begin{itemize}
+                            \item Here intended as range of the non-negative key values
+                        \end{itemize}
+                  \item Focus on growth trends rather than exact times.
+              \end{itemize}
+        \item \textbf{Conclusion:}
+              \begin{itemize}
+                  \item Theoretical focus helps identify scalability issues.
+                  \item Prioritizes relative efficiency over absolute timing.
+              \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\section{Comparing Algorithms}
+
+\begin{frame}[plain,standout]
+    \centering
+    \Huge
+    Comparing Algorithms
+
+    \normalsize
+    Big O notation, visualization, and classic sorting algorithms.
+    \vfill
+\end{frame}
+
+\begin{frame}
+    \frametitle{Understanding Big O Notation}
+    \framesubtitle{A teaspoon of math}
+
+    \begin{itemize}
+        \item \textbf{Big O Notation}: Describes the upper bound of complexity.
+              \begin{itemize}
+                  \item Focuses on worst-case scenario.
+                  \item Ignores constant factors and lower order terms.
+              \end{itemize}
+        \item \textbf{Basic Rules}
+              \begin{itemize}
+                  \item \textit{Linear Terms}: $\mathcal{O}(\alpha n + \beta) = \mathcal{O}(n)$.
+                        \begin{itemize}
+                            \item Constants $\alpha$, $\beta$ don't affect growth rate.
+                        \end{itemize}
+                  \item \textit{Sum Rule}: $\mathcal{O}(f(n)) + \mathcal{O}(g(n)) = \mathcal{O}(\max(f(n), g(n)))$.
+                  \item \textit{Product Rule}: $\mathcal{O}(f(n)) \cdot \mathcal{O}(g(n)) = \mathcal{O}(f(n) \cdot g(n))$.
+              \end{itemize}
+        \item \textbf{Implications}
+              \begin{itemize}
+                  \item Simplifies comparing algorithms.
+                  \item Emphasizes dominant factors affecting growth.
+              \end{itemize}
+        \item \textbf{Example}
+              \begin{itemize}
+                  \item $\mathcal{O}(3n^2 + 10n + 100) = \mathcal{O}(n^2)$.
+                        \begin{itemize}
+                            \item $n^2$ term dominates as $n$ grows.
+                        \end{itemize}
+              \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Visualization}
+    \framesubtitle{A picture is worth a \texttt{0x3E8} words}
+
+    \def\stretchfactor{1.5}
+    \begin{tikzpicture}[xscale=\stretchfactor, every node/.style={font=\small}]
+
+        % Grid and Axes
+        \draw[very thin,color=gray] (-0.1,0.1) grid (5.9,5.9);
+        \draw[->] (-0.2,0) -- (6.2,0) node[right] {$n$};
+        \draw[->] (0,-0.2) -- (0,6.2) node[above] {$f(n)$};
+
+        % axis label
+        \draw (3,0) node[below] {input size};
+        \draw (0,3) node[rotate=90, above] {impact on computation time};
+
+        % display a dot at (0, 0)
+        \fill[black] (0,0) circle (0.05);
+      
+        % Constant Time (O(1))
+        \draw[color=CustomCyan, domain=0.0:6.0, thick] plot(\x, 0) node[right, above] {$O(1)$};
+      
+        % Logarithmic Time (O(log n))
+        \draw[color=CustomGreen, domain=0:6.0, thick] plot(\x, {ln(\x + 1)}) node[right, right] {$O(\log n)$};
+
+        % Linear Time (O(n))
+        \draw[color=CustomYellow, domain=0.0:6.0, thick] plot (\x, \x) node[right, right] {$O(n)$};
+
+        % Linearithmic Time (O(n log n))
+        \draw[color=CustomOrange, domain=0:2.8, thick] plot(\x, {\x * ln(\x + 2)/ln(2)}) node[right, right] {$O(n \log n)$};
+
+        % Quadratic Time (O(n^2))
+        \draw[color=CustomRed, domain=0.0:2.07, thick] plot (\x, {(\x + 1) * \x}) node[right, right] {$O(n^2)$};
+
+        % Cubic Time (O(n^3))
+        \draw[color=CustomPurple, domain=0.0:1.25, thick] plot (\x, {(\x + 1) * (\x + 1) * \x}) node[right, right] {$O(n^3)$};
+
+        % Exponential Time (O(2^n))
+        \draw[color=CustomBlack, domain=0:0.636, thick] plot (\x, {pow(2, \x + 1) * (\x + 1) * (\x + 1) - 2}) node[right, right] {$O(2^n)$};
+        
+      \end{tikzpicture}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Classic Sorting Algorithms and Their Complexities}
+    \framesubtitle{Know your classics!}
+    \begin{table}
+        \begin{tabular}{lcccc}
+            \toprule
+            Algo. & Best & Average & Worst & Mem. \\
+            \midrule
+            Selection Sort & $\mathcal{O}(n^2)$ & $\mathcal{O}(n^2)$ & $\mathcal{O}(n^2)$ & $\mathcal{O}(1)$ \\
+            Insertion Sort & $\mathcal{O}(n)$ & $\mathcal{O}(n^2)$ & $\mathcal{O}(n^2)$ & $\mathcal{O}(1)$ \\
+            Bubble Sort & $\mathcal{O}(n)$ & $\mathcal{O}(n^2)$ & $\mathcal{O}(n^2)$ & $\mathcal{O}(1)$ \\
+            Merge Sort & $\mathcal{O}(n \log n)$ & $\mathcal{O}(n \log n)$ & $\mathcal{O}(n \log n)$ & $\mathcal{O}(n)$ \\
+            Quick Sort & $\mathcal{O}(n \log n)$ & $\mathcal{O}(n \log n)$ & $\mathcal{O}(n^2)$ & $\mathcal{O}(\log n)$ \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+\end{frame}
+
+\begin{frame}
+    \frametitle{More Algorithms and Their Complexities\footnote{See \url{https://www.bigocheatsheet.com/}}}
+    \begin{table}
+        \scriptsize % Adjust font size to fit the table in the frame
+        \begin{tabular}{lcccc}
+            \toprule
+            Algorithm & Best & Average & Worst & Memory \\
+            \midrule
+            Selection Sort & $\Omega(n^2)$ & $\Theta(n^2)$ & $O(n^2)$ & $O(1)$ \\
+            Insertion Sort & $\Omega(n)$ & $\Theta(n^2)$ & $O(n^2)$ & $O(1)$ \\
+            Bubble Sort & $\Omega(n)$ & $\Theta(n^2)$ & $O(n^2)$ & $O(1)$ \\
+            Merge Sort & $\Omega(n \log n)$ & $\Theta(n \log n)$ & $O(n \log n)$ & $O(n)$ \\
+            Quick Sort & $\Omega(n \log n)$ & $\Theta(n \log n)$ & $O(n^2)$ & $O(\log n)$ \\
+            Timsort & $\Omega(n)$ & $\Theta(n \log n)$ & $O(n \log n)$ & $O(n)$ \\
+            Heapsort & $\Omega(n \log n)$ & $\Theta(n \log n)$ & $O(n \log n)$ & $O(1)$ \\
+            Tree Sort & $\Omega(n \log n)$ & $\Theta(n \log n)$ & $O(n^2)$ & $O(n)$ \\
+            Shell Sort & $\Omega(n \log n)$ & $\Theta(n(\log n)^2)$ & $O(n(\log n)^2)$ & $O(1)$ \\
+            Bucket Sort & $\Omega(n+k)$ & $\Theta(n+k)$ & $O(n^2)$ & $O(n)$ \\
+            Radix Sort & $\Omega(nk)$ & $\Theta(nk)$ & $O(nk)$ & $O(n+k)$ \\
+            Counting Sort & $\Omega(n+k)$ & $\Theta(n+k)$ & $O(n+k)$ & $O(k)$ \\
+            Cubesort & $\Omega(n)$ & $\Theta(n \log n)$ & $O(n \log n)$ & $O(n)$ \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+\end{frame}
+
+\section{Tips and tricks}
+
+\begin{frame}[plain,standout]
+    \centering
+    \Huge
+    Tips and Tricks
+
+    \normalsize
+    Understanding the basics of sorting algorithms, and how to improve them.
+    \vfill
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Introducing Bubble Sort}
+    \framesubtitle{Humble start}
+
+    \begin{itemize}
+        \item \textbf{How It Works}
+        \begin{itemize}
+            \item Repeatedly steps through the list, compares adjacent elements, and swaps them if they are in the wrong order.
+            \item Continues until no more swaps are needed.
+            \item It works? Yes. Each inner loop iteration moves elements by one position. In the worst case, it needs \(n\) iterations to move the leftmost element to the rightmost position.
+        \end{itemize}
+        \item \textbf{Complexity: \(\mathcal{O}(n^2)\)}
+    \end{itemize}
+
+    \rule{\textwidth}{1pt}
+    \scriptsize
+    \begin{minted}{python}
+        def bubble_sort(arr):
+            n = len(arr)
+            for _ in range(n):
+                for j in range(n - 1):
+                    if arr[j] > arr[j + 1]:
+                        arr[j], arr[j + 1] = arr[j + 1], arr[j] # Swap
+            return arr
+    \end{minted}
+    \rule{\textwidth}{1pt}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Improving Bubble Sort}
+    \framesubtitle{Stay DRY!}
+
+    \begin{itemize}
+        \item \textbf{Optimizing Bubble Sort}
+            \begin{itemize}
+            \item \textit{Early Termination}: Stop if no swaps are made in an iteration.
+            \item \textit{Reduced Iterations}: Reduce the number of iterations as the array becomes sorted.
+            \end{itemize}
+        \item \textbf{Complexity: \(\mathcal{O}(n^2)\)}
+            \begin{itemize}
+            \item Best case: \(\mathcal{O}(n)\) for already sorted arrays.
+            \end{itemize}
+    \end{itemize}
+
+    \rule{\textwidth}{1pt}
+    \scriptsize
+    \begin{minted}{python}
+        def bubble_sort(arr):
+            n = len(arr)
+            for i in range(n):
+                swapped = False
+                for j in range(i, n - 1):
+                    if arr[j] > arr[j + 1]:
+                        arr[j], arr[j + 1] = arr[j + 1], arr[j] # Swap
+                        swapped = True
+                if not swapped:
+                    break
+            return arr
+    \end{minted}
+    \rule{\textwidth}{1pt}
+
+\end{frame}
+
+
+\section{Reviewing Classics}
+
+\begin{frame}[plain,standout]
+    \centering
+    \Huge
+    Reviewing Classics
+
+    \normalsize
+    Selection, Insertion, Bubble, Merge, and Quick Sort.
+    \vfill
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Selection Sort Algorithm}
+    \framesubtitle{Simplicity in Action}
+
+    \begin{itemize}
+        \item \textbf{How It Works}
+              \begin{itemize}
+                  \item Iteratively selects the smallest element from the unsorted portion and swaps it with the element at the current position.
+                  \item Continues until the entire array is sorted.
+              \end{itemize}
+    \end{itemize}
+
+    \rule{\textwidth}{1pt}
+    \scriptsize
+    \begin{minted}{python}
+        def selection_sort(arr):
+            for i in range(len(arr)):
+                min_idx = i
+                for j in range(i+1, len(arr)):
+                    if arr[j] < arr[min_idx]:
+                        min_idx = j
+                arr[i], arr[min_idx] = arr[min_idx], arr[i]
+            return arr
+    \end{minted}
+    \rule{\textwidth}{1pt}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Insertion Sort Algorithm}
+    \framesubtitle{Building the Sorted Array}
+
+    \begin{itemize}
+        \item \textbf{How It Works}
+              \begin{itemize}
+                  \item Builds the sorted array one element at a time.
+                  \item Iterates through the array, shifting elements to the right to make space for the current element.
+              \end{itemize}
+    \end{itemize}
+
+    \rule{\textwidth}{1pt}
+    \scriptsize
+    \begin{minted}{python}
+        def insertion_sort(arr):
+            for i in range(1, len(arr)):
+                key = arr[i]
+                j = i-1
+                while j >= 0 and key < arr[j]:
+                    arr[j+1] = arr[j]
+                    j -= 1
+                arr[j+1] = key
+            return arr
+    \end{minted}
+    \rule{\textwidth}{1pt}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Bubble Sort Algorithm}
+    \framesubtitle{Bubbling Up the Largest Element}
+
+    \begin{itemize}
+        \item \textbf{How It Works}
+              \begin{itemize}
+                  \item Repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order.
+                  \item Continues until no more swaps are needed.
+              \end{itemize}
+    \end{itemize}
+
+    \rule{\textwidth}{1pt}
+    \scriptsize
+    \begin{minted}{python}
+        def bubble_sort(arr):
+            n = len(arr)
+            for i in range(n):
+                for j in range(0, n-i-1):
+                    if arr[j] > arr[j+1]:
+                        arr[j], arr[j+1] = arr[j+1], arr[j]
+            return arr
+    \end{minted}
+    \rule{\textwidth}{1pt}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Quicksort Algorithm}
+    \framesubtitle{Divide and Conquer}
+
+    \begin{itemize}
+        \item \textbf{How It Works}
+              \begin{itemize}
+                  \item Employs a divide-and-conquer strategy to sort the array.
+                  \item Selects a 'pivot' element and partitions the array into sub-arrays of elements less than and greater than the pivot.
+                  \item Recursively applies the same strategy to the sub-arrays.
+                  \item Highly efficient for large datasets, with average time complexity of O(n log n).
+              \end{itemize}
+    \end{itemize}
+
+    \rule{\textwidth}{1pt}
+    \scriptsize
+    \begin{minted}{python}
+        def quicksort(arr):
+            if len(arr) <= 1:
+                return arr
+            pivot = arr[len(arr) // 2]
+            left = [x for x in arr if x < pivot]
+            middle = [x for x in arr if x == pivot]
+            right = [x for x in arr if x > pivot]
+            return quicksort(left) + middle + quicksort(right)
+    \end{minted}
+    \rule{\textwidth}{1pt}
+\end{frame}
+
+
+\begin{frame}[fragile]
+    \frametitle{Merge Sort Algorithm}
+
+    \begin{itemize}
+        \item \textbf{How It Works}
+              \begin{itemize}
+                  \item Another divide-and-conquer algorithm that divides the array into halves, sorts each half, and then merges the sorted halves together.
+                  \item Begins with the division of the array into smallest manageable units, then merges units in a sorted manner to form larger sorted sections until the whole array is merged back together.
+                  \item Consistently performs with a time complexity of O(n log n), making it highly efficient for large data sets.
+              \end{itemize}
+        \item \textbf{Key Features}
+              \begin{itemize}
+                  \item Predictable performance.
+                  \item Stable sorting algorithm.
+                  \item Popular. Default sorting algorithm for many programming languages, but tends to be replaced by Timsort in practice.
+              \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Merge Sort Algorithm}
+
+    \scriptsize
+    \begin{minted}{python}
+        def merge_sort(arr):
+            if len(arr) > 1:
+                mid = len(arr) // 2
+                L = arr[:mid]
+                R = arr[mid:]
+                merge_sort(L)
+                merge_sort(R)
+                i = j = k = 0
+                while i < len(L) and j < len(R):
+                    if L[i] < R[j]:
+                        arr[k] = L[i]
+                        i += 1
+                    else:
+                        arr[k] = R[j]
+                        j += 1
+                    k += 1
+                while i < len(L):
+                    arr[k] = L[i]
+                    i, k = i + 1, k + 1
+                while j < len(R):
+                    arr[k] = R[j]
+                    j, k = j + 1, k + 1
+            return arr
+    \end{minted}
+\end{frame}
+
+
+
+
+\begin{frame}
+    \frametitle{Thank You for Your Attention!}
+    \framesubtitle{Further Resources}
+
+    \begin{itemize}
+        \item \textbf{Useful Links}
+              \begin{itemize}
+                  \item Big O Cheat Sheet: \url{https://www.bigocheatsheet.com/}
+                        \begin{itemize}
+                            \item A handy reference for complexity of common data structures and algorithms.
+                        \end{itemize}
+                  \item Sorting Algorithms with Animations: \url{https://www.toptal.com/developers/sorting-algorithms/bubble-sort}
+                        \begin{itemize}
+                            \item Explore how different sorting algorithms work with interactive animations.
+                        \end{itemize}
+              \end{itemize}
+        \item \textbf{Contact \& Feedback}
+              \begin{itemize}
+                  \item My GitHub: \url{https://github.com/0nyr}
+                  \item This presentation: \url{https://github.com/0nyr/sorting_algorithms}
+              \end{itemize}
+    \end{itemize}
+
+    \centering{Once again, thank you and have a great day!}
+\end{frame}
+
+
+\end{document}
