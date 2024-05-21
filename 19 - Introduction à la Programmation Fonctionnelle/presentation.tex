@@ -1,0 +1,506 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usetheme{Frankfurt}
+
+\title{Introduction à la programmation fonctionnelle}
+\author{Insalgo}
+\date{2024}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes.geometric}
+
+\lstset{%
+basicstyle=\small\ttfamily,
+breaklines = true,
+language=C,
+%numbers=left,
+%numberstyle=\tiny\color{gray},
+keywordstyle=\color{blue}\ttfamily,
+stringstyle=\color{red}\ttfamily,
+commentstyle=\color{green}\ttfamily,
+morecomment=[l][\color{magenta}]{\#},
+xleftmargin=0em,frame=single,framexleftmargin=0em,
+showstringspaces=false
+}
+
+\newcommand*{\thead}[1]{\multicolumn{1}{|c|}{\bfseries #1}}
+\newcommand*{\local}[1]{\lstinline|\_#1|}
+
+\AtBeginSection[]{
+  \begin{frame}
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+    \usebeamerfont{title}\insertsectionhead\par%
+  \end{beamercolorbox}
+  \vfill
+  \end{frame}
+}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\frame{\tableofcontents}
+
+\section{Lambda Calcul}
+
+\begin{frame}{Contexte historique}
+    Dans les années 1930, plusieurs mathématiciens étudient la théorie de la calculabilité : ce sont les débuts de l'informatique. Cette théorie étudie les problèmes avec des solution \textbf{algorithmiques}.
+    Mais à l'époque, il n'y a pas de langages pour décrire les algorithmes. Deux mathématiciens proposent une manière de décrire les algorithmes :
+    \begin{itemize}
+        \item Alan Turing propose la \textbf{machine de Turing}
+        \item Alonzo Church propose le \textbf{$\lambda$-calul}
+    \end{itemize}
+    Il sera démontré que ces deux paradigmes bien que très différents dans leur approche sont équivalents (la notion de Turing-complétude a été inventée pour cette démonstration)
+\end{frame}
+
+\begin{frame}{Definition du lambda calcul}
+    Le lambda calcul est défini de manière très simple : on construit un \textbf{terme} (un programme) en composant 3 blocs de base :
+    \begin{itemize}
+        \item Les variables $x$
+        \item Les abstractions $\lambda x.M$ où $M$ est un terme (= déclaration de fonction)
+        \item Les applications $M\;N$ où $M$ et $N$ sont des termes (= appel de fonction)
+    \end{itemize}
+    Sur lesquels on peut appliquer deux opérations logiques :
+    \begin{itemize}
+        \item $\alpha$-conversion : $\lambda x.M[x] \rightarrow \lambda y.M[y]$ (changement de variable)
+        \item $\beta$-reduction : $(\lambda x.M[x])\;N \rightarrow M[x:=N]$ (application de la fonction)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+    \begin{block}{Équivalents lambda calcul/python}
+        Le terme $\lambda x.x$ s'écrit 
+
+        \begin{lstlisting}[language=Python]
+lambda x: x          
+        \end{lstlisting}
+        
+        Le terme $(\lambda x.x) y$ s'écrit
+
+        \begin{lstlisting}[language=Python]
+(lambda x:x)(y)      
+        \end{lstlisting}
+    
+        Le terme $\lambda x.f\;x$ s'écrit
+
+        \begin{lstlisting}[language=Python]
+lambda x:f(x)         
+        \end{lstlisting}
+    \end{block}
+
+    \begin{block}{Exemples de calculs}
+        $(\lambda x.x)\;y \rightarrow y$
+
+        $(\lambda x.f\;x) y \rightarrow f\;y$
+    \end{block}
+
+\end{frame}
+
+\section{Définition fonctionnel}
+
+\begin{frame}{Le paradigme fonctionnel}
+    Le paradigme de la programmation fonctionnelle provient du $\lambda$-calcul. On retrouve donc les concepts suivants :
+    \begin{itemize}
+        \item Fonctions pures
+        \item Variables immutables
+        \item Fonctions "first-class citizen"
+    \end{itemize}
+    Mais il y a aussi beaucoup d'ajouts par rapport à ce modèle théorique très simple (liste non exhaustive):
+    \begin{itemize}
+        \item Manipuler autre chose que des fonctions (strings, nombres, booléens,...)
+        \item Algebraic Data Types
+        \item Pattern matching
+        \item Système de types avancé (pour certains langages)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Fonctions pures}
+    Une fonction pure est l'analogue informatique des fonction mathématiques.
+    Une fonction pure est une fonctions qui valide plusieurs critères :
+    \begin{itemize}
+        \item Pas d'effets de bord : pas de mutation de variables globales ou d'entrées mutables
+        \item Déterministes : les mêmes paramètres donne le même résultat
+    \end{itemize}
+
+    \pause
+
+    \begin{block}{Avantages}
+        \begin{itemize}
+            \item Reproductible et testable !
+
+            \item Se parallélise facilement
+    
+            \item Facilité de raisonnement sur le code
+        \end{itemize}
+
+    \end{block}
+    
+\end{frame}
+
+\section{Concepts}
+
+\subsection{Généralités}
+
+\begin{frame}[fragile]{Vous avez dit boucles ?}
+    Non !
+
+    Une boucle implique une variable mutable. Or, les variables doivent être immutables.
+    
+    Pas de boucles \verb|while| ou \verb|for|.
+    \pause
+    \begin{block}{Solution}
+        Les boucles \verb|for| peuvent souvent être remplacées par des \textbf{fonctions d'ordre supérieur}.
+        De manière générale, les boucles sont remplacées par de la \textbf{récursion}.
+        Les langages fonctionnels ont des optimisation pour rendre la récursion plus performante (tail recursion).
+    \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Fonctions "first-class citizen"}
+    On dit que les fonctions sont des citoyens de première classe dans un langage quand celui-ci permet de traiter les fonctions comme des valeurs : les assigner à des variables, les passer en paramètres à d'autres fonctions.
+
+    Par exemple, en python, les fonctions sont bien des citoyens de première classe, il est possible de les assigner à des variables et de les passer en paramètre :
+
+    \begin{lstlisting}[language=Python]
+def application(f, x):
+    return f(x)
+
+def ajouter_un(x):
+    return x+1
+
+resultat = application(ajouter_un, 3) # 4
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Fonctions d'ordre supérieur}
+    Une fonction d'ordre supérieur est une fonctions qui prend au moins une fonction en paramètre et/ou retourne une fonctions.
+
+    Python fournit quelques de fonctions d'ordre supérieur, an particulier pour le traitement des listes :
+
+    \begin{lstlisting}[language=Python]
+res = map(ajouter_un, [1, 2, 3, 4]) # [2, 3, 4, 5]
+res2 = filter(res, lambda x: x>2) # [3, 4, 5]
+    \end{lstlisting}
+
+    Le paquet functools fournit plus de fonctions d'ordre supérieur.
+
+      \begin{lstlisting}[language=Python]
+res = reduce(lambda x, y: x+y, [1,2,3,4]) # 10
+    \end{lstlisting}  
+\end{frame}
+
+\begin{frame}[fragile]{Composition de fonctions}
+    La programmation fonctionnelle se repose beaucoup sur le faire de faire le bon enchaînement de fonctions pour parvenir jusqu'au résultat attendu. Lorsqu'on enchaîne deux fonctions, on dit qu'on les compose : $\forall x, g(f(x)) = (g\circ f)(x)$
+    Grâce aux fonctions d'ordre supérieur, on peut appliquer le même raisonnement en programmation.
+
+    \only<1>{\textbf{Une idée d'implémentation ?}}
+    \pause
+    \begin{lstlisting}[language=Python]
+def compose(g, f):
+    return lambda x : g(f(x))
+
+add = lambda x: x+1
+mult = lambda x: x*2
+add_then_mult = compose(mult, add)
+res = add_then_mult(2) # = (2+1)*2 = 6
+    \end{lstlisting}
+\end{frame}
+
+\subsection{Applications partielles et currying}
+
+\begin{frame}[fragile]{Applications partielles et currying}
+
+    \framesubtitle{Définition}
+
+    On dit qu'on \textbf{applique partiellement} une fonction lorsqu'on ne donne qu'une partie de des paramètres, on obtient alors une nouvelle fonction qui attend les paramètres restants.
+    Soit $f$ une fonction de $\mathbb{R}^2$ dans $\mathbb{R}$ tq. $\forall (x, y) \in \mathbb{R}^2, f(x, y) = x + y$ alors la fonction $g$ de $\mathbb{R}$ dans $\mathbb{R}$ tq. $\forall x \in \mathbb{R}, g(x) = f(2, x)$ est une application partielle de f.
+    
+    Lorsqu'on programme, on peut aussi avoir à un moment donné une partie des arguments pour une fonction, mais ne pas avoir les autres. Il est alors utile d'obtenir une application partielle de la fonction avec les arguments déjà connus.
+    
+\end{frame}
+
+\begin{frame}[fragile]{Applications partielles et currying}
+
+    \framesubtitle{Solutions sans currying}
+    
+    Il y a plusieurs moyens d'arriver au même résultat en python :
+    
+    Une fonction g comme dans la définition :
+    
+    \begin{lstlisting}[language=Python]
+def f(x, y):
+    return x+y
+def g(x):
+    return f(2,x)
+res = g(5) # 2+5 = 7
+    \end{lstlisting}
+
+    Ou bien l'utilisation de la fonction partial de functools
+
+    \begin{lstlisting}[language=Python]
+def f(x, y);
+    return x+y
+g = partial(f, 2)
+res = g(5) # 2 + 5 = 7
+    \end{lstlisting}
+    
+\end{frame}
+
+\begin{frame}[fragile]{Applications partielles et currying}
+
+    \framesubtitle{Currying}
+
+    \begin{block}{Définition}
+        Revenons à notre $\lambda$-calcul. Dans la grammaire du langage, seules les fonctions à une variable d'entrée sont autorisées, comment alors représenter notre fonction une fonction qui prend deux arguments ?
+
+        \pause
+
+        Comme cela : $\lambda x.\lambda y. M[x, y]$ (notation raccourcie : $\lambda xy.M[x, y]$)
+
+        Ce mécanisme se nomme currying (du nom de Haskell Curry qui l'a inventé)
+
+    \end{block}
+    \begin{exampleblock}{Explication}
+        \only<2>{Une idée ? Tentons de réduire $(\lambda x.\lambda y.M[x,y])\;N\;P$}
+        \pause
+        $(\lambda x.\lambda y.M[x,y])\;N\;P$
+        
+        $\rightarrow (\lambda y.M[x:=N,y])\;P$
+        
+        $\rightarrow M[x:=N, y:=P]$  
+    \end{exampleblock}
+    
+\end{frame}
+
+\begin{frame}{Applications partielles et currying}
+
+    \framesubtitle{Application du currying aux application partielles}
+
+    On constate à l'étape intermédiaire que le terme $\lambda y.M[x:=N,y]$ est l'application partielle avec N comme premier argument de notre fonction. Le currying nous offre gratuitement l'application partielle comme étape intermédiaire.
+
+    Ainsi, $(\lambda x.\lambda y.M[x,y])\;N$ la fonction prend deux paramètres mais si on ne lui en fournit qu'un seul paramètre $N$, le terme vaut l'application partielle de la fonction.
+
+    \textbf{Une idée d'implémentation en Python ?}
+    
+\end{frame}
+
+\begin{frame}[fragile]{Applications partielles et currying}
+
+    \framesubtitle{Application du currying aux application partielles en python}
+
+    On peut coder ce mécanisme en python, bien que le langage n'y soit pas très adapté.
+
+    \begin{lstlisting}[language=Python]
+def add(a):
+    def partial(b) :
+        return a+b
+    return partial
+
+partial = add(5)
+res1 = partial(2) # 7
+res = add(2)(3) # 5
+    \end{lstlisting}
+
+On peut définir add uniquement en fonction lambda (l'utilisation est la même)
+
+    \begin{lstlisting}[language=Python]
+add = lambda a: lambda b: a+b
+    \end{lstlisting}
+
+\end{frame}
+
+\subsection{Algebraic Data Types}
+
+\begin{frame}[fragile]{Algebraic Data Types}
+    \framesubtitle{Types multiplicatifs}
+    Les \textbf{types algébriques de données} sont des types composés. C'est-à-dire qu'on crée un nouveau type à partir d'autre types existants.
+
+    L'exemple le plus connu est une struct ou classe :
+
+    \begin{lstlisting}[language=Python]
+class A :
+    a: B
+    b: C
+    \end{lstlisting}
+
+    Ces types sont dits \textbf{multiplicatifs} car ils sont l'équivalent de l'opération mathématique du \textbf{produit cartésien}. On peut en effet représenter le type comme cela : $ A = B \times C$. Ou aussi car $|A| = |B| \times |C|$
+    
+    En effet, si $B$ a $n$ valeurs possibles et $C$ a $m$ valeurs possibles alors $A$ a $m\times n$ valeurs possibles.
+\end{frame}
+
+\begin{frame}[fragile]{Algebraic Data Types}
+    \framesubtitle{Types additifs}
+    L'autre manière de composer des types est par des types additifs :
+    \begin{lstlisting}[language=Python]
+type A = B | C
+    \end{lstlisting}
+    Une variable de type A est en fait de type B OU de type C. On dit que ces types sont additifs car ils sont équivalents à l'union disjointe $A = B+C$ et aussi car $|A|=|B|+|C|$
+    En effet, si $B$ a $n$ valeurs possibles et $C$ a $m$ valeurs possibles alors $A$ a $m + n$ valeurs possibles.
+
+    Ces types additifs sont aussi appelés \textbf{unions}.
+\end{frame}
+
+\begin{frame}[fragile]{Algebraic Data Types}
+    \framesubtitle{Unions taggées}
+    L'union en Python est non taggée, c'est à dire qu'on ne peut pas identifier facilement de quelle variante est une variable
+
+    Certains langages proposent des \textbf{unions taggées}, c'est à dire que chaque variante a un identificateur appelé tag.
+
+    \begin{itemize}
+    \item En Rust :
+    \begin{lstlisting}
+enum Exemple {
+    Variante1(i64),
+    Variante2(f64)
+}
+    \end{lstlisting}
+
+    \item En Haskell :
+    \begin{lstlisting}[language=Haskell]
+data Pair = Variante1 Int 
+          | Variante2 Double
+    \end{lstlisting}
+    \end{itemize}
+\end{frame}
+
+\subsection{Pattern matching}
+
+\begin{frame}[fragile]{Pattern matching}
+    \framesubtitle{Variantes}
+    Lorsque l'on manipule un type additif, on doit pouvoir faire une actions différente selon la variante, et en extraire les données internes. Ce là qu'intervient le pattern matching.
+    En Rust :
+    \begin{lstlisting}
+let exemple = Exemple::Variante2(5.3);
+let res = match exemple {
+    Exemple::Variante1(inner) => inner + 1,
+    Exemple::Variante2(inner) => inner as i64 + 2
+}; // res = 7
+    \end{lstlisting}
+    Ce mécanisme nous permet de distinguer entre les variantes et d'extraire les données contenues dans chaque variante.
+\end{frame}
+
+\begin{frame}[fragile]{Pattern matching}
+    \framesubtitle{En python}
+    Python n'a pas d'union taggées alors il faut créer des classes et le nom de ces classes servent de tag.
+    \begin{lstlisting}[language=Python]
+@dataclass
+class B: 
+    x: int
+@dataclass
+class C:
+    x: float
+    y: bool
+type A = B | C
+
+exemple: A = C(3.5, True)
+match exemple:
+    case B(a): print(f"B contains {a}")
+    case C(a, b): print(f"C contains {a} and {b}") 
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Pattern matching}
+    \framesubtitle{En python}
+
+    En réalité le pattern matching est bien plus puissant que ce qui a été présenté. Il permet de détecter la structure des données et de faire différentes actions selon la structure, en particulier des listes et tuples.
+
+    \begin{lstlisting}[language=Python]
+match command.split():
+    case ["quit"]: ... 
+    case ["go", dir] | ["go", "to", dir]: ...
+    case ["turn", ("right"|"left") as dir] : ...
+    case ["say", word] if word not in banned : ...
+    case ["drop", *objects]: ...
+    case _:
+        print(f"Commande inconnue")
+    \end{lstlisting}
+
+    Voir \href{https://peps.python.org/pep-0636/}{PEP 636} pour un tour complet des fonctionnalités.
+\end{frame}
+
+\subsection{Gestion d'erreurs et valeurs nulles}
+
+\begin{frame}[fragile]{Gestion d'erreurs et valeurs nulles}
+    \framesubtitle{Le problème}
+    Nous avons vu qu'en programmation fonctionnelle, les fonctions doivent avoir une valeur de retour pour toutes les combinaisons possibles de valeurs d'entrée. Mais que faire quand les valeurs d'entrée sont invalides ?
+    Par exemple, la division n'est pas valide pour toutes les combinaisons de deux nombres, si le dénominateur vaut 0, alors la division n'est pas possible.
+
+    Comment alors créer une fonction \verb|div(x: float, y: float)| qui reste pure ?
+\end{frame}
+
+\begin{frame}[fragile]{Gestion d'erreurs et valeurs nulles}
+    \framesubtitle{Le type Maybe / Option}
+    Il faut modéliser dans le type de retour le fait que la fonction peut échouer. Cela se fait par le type \verb|Maybe| (en Haskell) / \verb|Option| (en Rust).
+    Voici une implémentation de ce type en Python (version 3.12 minimum):
+    \begin{lstlisting}[language=Python]
+@dataclass
+class Just[T] :
+    val: T
+class Nothing:
+    ...
+type Maybe[T] = Just[T] | Nothing
+    \end{lstlisting}
+
+    \verb|Maybe| / \verb|Just| / \verb|Nothing| sont les noms en Haskell. Les noms équivalents en rust sont \verb|Option| / \verb|Some| / \verb|None|
+
+    \textbf{Une idée d'implémentation pour div(x: float, y: float) ?}
+\end{frame}
+
+\begin{frame}[fragile]{Gestion d'erreurs et valeurs nulles}
+    \framesubtitle{Exemple d'implémentation}
+    On peut implémenter la fonction de cette manière
+    \begin{lstlisting}[language=Python]
+def div(a: float, b: float) -> Maybe[float]:
+    if b == 0 :
+        return Nothing()
+    return Just(a/b)
+    \end{lstlisting}
+
+    Puis on peut faire des opérations sur le résultat avec \verb|match| :
+
+    \begin{lstlisting}
+match div(3, 5):
+    case Just(res): print(f"Le resultat est {res}")
+    case Nothing(): print("Division interdite !!")
+    \end{lstlisting}
+
+
+\end{frame}
+
+\begin{frame}[fragile]{Gestion d'erreurs et valeurs nulles}
+    Attention à ne pas confondre \verb|Nothing| et \verb|None|, \verb|Nothing()| est une valeur valide seulement pour une variable de type \verb|Maybe|, alors que \verb|None| représente l'absence de valeur pour tous les types.
+
+    En Rust et Haskell, le mot clé \verb|none|/\verb|null|/\verb|nil| est totalement absent. Pour représenter l'absence de valeur, il est nécéssaire de donner le type \verb|Option|/\verb|Maybe| et de donner sa variante \verb|Nothing| (appelée \verb|None| en Rust)
+\end{frame}
+
+\begin{frame}[fragile]{Gestion d'erreurs et valeurs nulles}
+    \framesubtitle{Avantages}
+    Ainsi, on modélise les erreurs dans le système de types, les erreurs sont traitées comme de simples valeurs. Il n'y a pas de mécanismes spécialisés pour la gestion d'erreurs (comme les exceptions)
+    Cela permet de savoir si une fonction peut échouer simplement en regardant sa signature, et de s'assurer de gérer l'erreur.
+
+    Lorsqu'on veut chainer des opérations qui peuvent échouer, la syntaxe peut rapidement devenir chargée. Les langages type Rust ou Haskell qui utilisent par défaut cette gestion d'erreurs apportent des mécanismes qui permettent de simplifier cela (opérateur \verb|?| en Rust, opérateurs \verb|>>=| et\verb|>>| en Haskell).
+
+    En Haskell, ces opérateurs sont plus génériques et s'appliquent en réalité à tout un ensemble de types qui sont des \textbf{Monades}, mais pas besoin d'en savoir plus pour les utiliser.
+\end{frame}
+
+\section{Conclusion}
+
+\begin{frame}{Conclusion}
+
+Les programmation fonctionnelle peut être déroutante au début. En particulier les langages fonctionnels ont une syntaxe particulière et de nouveaux concepts à comprendre.
+
+On peut tout de même reprendre certains concepts dans des langages impératifs plus classiques.
+
+Le programmation fonctionnelle peut permettre un style plus impératif permettant de mieux décrire les intentions, us système de types plus puissant qu'habituellement et une nouvelle visions sur les problèmes posés.
+    
+\end{frame}
+
+\end{document}
+ 
