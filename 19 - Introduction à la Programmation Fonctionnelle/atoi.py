@@ -1,12 +1,12 @@
 # Fonction récursive avec tail call (donc optimisée (pas en python hélas))
 def atoi_calc(s: list[str], acc: int = 0) -> int :
     match s:
-        case []:
+        case [] :
             return acc
-        case [n, *tail] if not n.isdigit():
-            return acc//(10**(len(tail)+1))
+        case [n, *_] if not n.isdigit():
+            return acc
         case [n, *tail]:
-            return atoi_calc(tail, acc+int(n)*10**len(tail))
+            return atoi_calc(tail, acc*10+int(n))
 
 def atoi_sign(s: list[str]) -> int :
     match s:
